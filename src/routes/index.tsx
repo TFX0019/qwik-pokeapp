@@ -1,16 +1,21 @@
 import { $, component$, useSignal } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { type DocumentHead, useNavigate } from "@builder.io/qwik-city";
 import { PokemonImage } from "~/pokemons/pokemon-image";
 
 export default component$(() => {
+  const nav = useNavigate();
 
   const pokemonId = useSignal(1);
   const backImage = useSignal(false);
-  const isVisible = useSignal(false);
+  const isVisible = useSignal(true);
 
   const changePokemonId = $((value: number) => {
     if((pokemonId.value+value) <= 0) return;
     pokemonId.value += value;
+  })
+
+  const goToPokemo = $(() => {
+    nav(`/pokemon/${pokemonId.value}`)
   })
 
   return (
@@ -21,12 +26,18 @@ export default component$(() => {
       {/* crear iamgen del id */}
       {/* <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId.value}.png`} 
       alt="pokemont sprite" style={{width: '200px'}} /> */}
-      <PokemonImage 
-      id={pokemonId.value} 
-      size={200}
-      backImage={backImage.value}
-      isVisible={isVisible.value}
-       />
+      {/* <Link href={`/pokemon/${pokemonId.value}/`}>
+        
+      </Link> */}
+
+      <div onClick$={() => goToPokemo()}>
+        <PokemonImage 
+          id={pokemonId.value} 
+          size={200}
+          backImage={backImage.value}
+          isVisible={isVisible.value}
+          />
+      </div>
       
       <div>
         <button onClick$={() => changePokemonId(-1)} class="btn btn-primary mr-2">Anterior</button>
