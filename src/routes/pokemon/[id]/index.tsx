@@ -1,6 +1,5 @@
-import { component$, useContext } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import { type DocumentHead, routeLoader$ } from '@builder.io/qwik-city';
-import { PokemonGameContext } from '~/context';
 import { usePokemonGame } from '~/hooks/usePokemonGame';
 import { PokemonImage } from '~/pokemons/pokemon-image';
 // import { PokemonImage } from '~/pokemons/pokemon-image';
