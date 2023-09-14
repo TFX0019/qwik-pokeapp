@@ -20,6 +20,7 @@ export const PokemonImage = component$<Props>(({
     });
 
     const imageUrl = useComputed$(() => {
+        if(isNaN(id)) return '';
         return backImage
         ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${id}.png`
         : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`

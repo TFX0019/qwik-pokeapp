@@ -1,5 +1,7 @@
-import { component$, useComputed$ } from '@builder.io/qwik';
+import { $, component$, useComputed$, useSignal, useStore, useVisibleTask$ } from '@builder.io/qwik';
 import { Link, type DocumentHead, routeLoader$, useLocation } from '@builder.io/qwik-city';
+import { Modal } from '~/components/shared/modal/modal';
+import { getFuncFatAboutPokemon } from '~/helpers/get-chatgpt';
 import { getSmallPokemons } from '~/helpers/get-small-pokemons';
 import type { SmallPokemon } from '~/interfaces';
 import { PokemonImage } from '~/pokemons/pokemon-image';
@@ -7,6 +9,8 @@ import { PokemonImage } from '~/pokemons/pokemon-image';
 
 export const usePokemonList = routeLoader$<SmallPokemon[]>(async ({query, redirect, pathname}) => {
   
+  
+
   const offset = Number(query.get('offset') || '0');
   if(isNaN(offset)) redirect(301, pathname);
   if(offset < 0) redirect(301, pathname);
@@ -20,6 +24,15 @@ export const usePokemonList = routeLoader$<SmallPokemon[]>(async ({query, redire
 export default component$(() => {
   const pokemons = usePokemonList();
   const location = useLocation();
+  const open = useSignal(false);
+
+  const modalPokemon = useStore({
+    name: '',
+    id: ''
+  });
+
+  const chatGptPokemonFact = useSignal('');
+
   const currentOffset = useComputed$<number>(() => {
     // const offsetString = location.url.searchParams.get('offset');
     const offsetString = new URLSearchParams(location.url.search);
@@ -27,7 +40,25 @@ export default component$(() => {
   });
 
   
+  const showModal = $((id: string, name: string) => {
+    modalPokemon.id = id;
+    modalPokemon.name = name;
+    open.value = true;
+  });
 
+  const closeModal =$(() => {
+    open.value = false;
+  });
+
+
+  useVisibleTask$(({track}) => {
+    track(() => modalPokemon.name)
+    chatGptPokemonFact.value = '';
+    if(modalPokemon.name.length > 0) {
+      getFuncFatAboutPokemon(modalPokemon.name).then((resp) => chatGptPokemonFact.value = resp)
+    }
+    
+  })
   
 
   return (
@@ -45,12 +76,28 @@ export default component$(() => {
 
         <div class="grid grid-cols-6 mt-5">
           {pokemons.value.map(({name, id}) => (
-            <div key={name} class="m-5 flex-col justify-center items-center">
+            <div key={name} onClick$={() => showModal(id, name)} class="m-5 flex-col justify-center items-center">
               <PokemonImage id={Number(id)} isVisible={true} />
               <span class="capitalize">{name}</span>
             </div>
           ))}
         </div>
+
+        <Modal 
+        open={open.value} 
+        close={closeModal} 
+        persistent={true}
+        size='md'
+        >
+          <div q:slot='title'>{modalPokemon.name}</div>
+          <div q:slot='content'>
+            <PokemonImage id={Number(modalPokemon.id)} isVisible={true} />
+            <span>
+              {chatGptPokemonFact.value === '' ? 'Preguntando a chat GPT' : chatGptPokemonFact.value }
+            </span>
+            </div>
+          
+        </Modal>
     </>
   )
 });
